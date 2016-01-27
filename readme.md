@@ -173,6 +173,11 @@ php artisan make:migration:schema create_dogs_table --schema="name:string"
 
 You'll get a migration, populated with the schema...but you'll also get an Eloquent model at `app/Dog.php`. Naturally, you can opt out of this by adding the `--model=false` flag/option.
 
+For a specific filename, use --filename option:
+```
+php artisan make:migration:schema create_doge_table --filename=2016_01_27_090200_create_doge_table.php
+```
+
 If you wish to specify a different path for your migration file, you can use the `--path` option like so:
 ```
 php artisan make:migration:schema create_dogs_table --path=\database\migrations\pets
