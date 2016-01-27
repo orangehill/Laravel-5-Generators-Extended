@@ -130,9 +130,13 @@ class MigrationMakeCommand extends Command
      */
     protected function getPath($name)
     {
+        $filename = ($this->option('filename'))
+            ? $this->option('filename')
+            : date('Y_m_d_His').'_'.$name.'.php';
+
         $path = ($this->option('path'))
-            ? base_path().$this->option('path').'/'.date('Y_m_d_His').'_'.$name.'.php'
-            : base_path().'/database/migrations/'.date('Y_m_d_His').'_'.$name.'.php';
+            ? base_path().$this->option('path').'/'.$filename
+            : base_path().'/database/migrations/'.$filename;
 
         return $path;
     }
@@ -248,6 +252,7 @@ class MigrationMakeCommand extends Command
             ['schema', 's', InputOption::VALUE_OPTIONAL, 'Optional schema to be attached to the migration', null],
             ['model', null, InputOption::VALUE_OPTIONAL, 'Want a model for this table?', true],
             ['path', null, InputOption::VALUE_OPTIONAL, 'Optional path for a migration.', false],
+            ['filename', null, InputOption::VALUE_OPTIONAL, 'Optional path for a migration.', false],
         ];
     }
 }
