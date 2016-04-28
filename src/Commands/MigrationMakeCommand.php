@@ -252,7 +252,7 @@ class MigrationMakeCommand extends Command
             ['schema', 's', InputOption::VALUE_OPTIONAL, 'Optional schema to be attached to the migration', null],
             ['model', null, InputOption::VALUE_OPTIONAL, 'Want a model for this table?', true],
             ['path', null, InputOption::VALUE_OPTIONAL, 'Optional path for a migration.', false],
-            ['filename', null, InputOption::VALUE_OPTIONAL, 'Optional path for a migration.', false],
+            ['filename', null, InputOption::VALUE_OPTIONAL, 'Optional filename for a migration.', false],
         ];
     }
 }

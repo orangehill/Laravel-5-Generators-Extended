@@ -39,6 +39,22 @@ class PivotMigrationMakeCommand extends GeneratorCommand
     }
 
     /**
+     * Retrieves the desired action.
+     * If no action was set in the option, create action will be returned.
+     *
+     * @return string
+     */
+    protected function getAction()
+    {
+        if ($this->option('action')) {
+            return strtolower($this->option('action'));
+        }
+        else {
+            return 'create';
+        }
+    }
+
+    /**
      * Parse the name and format.
      *
      * @param  string $name
@@ -49,7 +65,9 @@ class PivotMigrationMakeCommand extends GeneratorCommand
         $tables = array_map('str_singular', $this->getSortedTableNames());
         $name = implode('', array_map('ucwords', $tables));
 
-        return "Create{$name}PivotTable";
+        $actionName = ucfirst($this->getAction());
+
+        return "{$actionName}{$name}PivotTable";
     }
 
     /**
@@ -59,7 +77,7 @@ class PivotMigrationMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__ . '/../stubs/pivot.stub';
+        return __DIR__ . '/../stubs/pivot_'.$this->getAction().'.stub';
     }
 
     /**
@@ -70,8 +88,15 @@ class PivotMigrationMakeCommand extends GeneratorCommand
      */
     protected function getPath($name = null)
     {
-        return base_path() . '/database/migrations/' . date('Y_m_d_His') .
-        '_create_' . $this->getPivotTableName() . '_pivot_table.php';
+        $filename = ($this->option('filename'))
+            ? $this->option('filename')
+            : date('Y_m_d_His').'_'.$name.'.php';
+
+        $path = ($this->option('path'))
+            ? base_path().$this->option('path').'/'.$filename
+            : base_path().'/database/migrations/'.$filename;
+
+        return $path;
     }
 
     /**
@@ -111,10 +136,28 @@ class PivotMigrationMakeCommand extends GeneratorCommand
     protected function replaceSchema(&$stub)
     {
         $tables = $this->getSortedTableNames();
+        $singularTableNames = array_map('str_singular', $tables);
+
+        $fields = ($this->option('columnOne') && $this->option('columnTwo'))
+            ? [$this->option('columnOne'), $this->option('columnTwo')]
+            : [$singularTableNames[0].'_id', $singularTableNames[1].'_id'];
 
         $stub = str_replace(
             ['{{columnOne}}', '{{columnTwo}}', '{{tableOne}}', '{{tableTwo}}'],
-            array_merge(array_map('str_singular', $tables), $tables),
+            array_merge($fields, $tables),
+            $stub
+        );
+
+        $foreignKeys = '';
+        if ($this->option('useForeignKeys')) {
+            $foreignKeys = '
+            $table->foreign(\''.$fields[0].'\')->references(\'id\')->on(\''.$tables[0].'\')->onDelete(\'cascade\');
+            $table->foreign(\''.$fields[1].'\')->references(\'id\')->on(\''.$tables[1].'\')->onDelete(\'cascade\');';
+        }
+
+        $stub = str_replace(
+            '{{foreignKeys}}',
+            $foreignKeys,
             $stub
         );
 
@@ -130,7 +173,11 @@ class PivotMigrationMakeCommand extends GeneratorCommand
      */
     protected function replaceClass($stub, $name)
     {
-        $stub = str_replace('{{class}}', $name, $stub);
+        $stub = str_replace(
+            '{{class}}',
+            ($this->option('className') ? $this->option('className') : $name),
+            $stub
+        );
 
         return $stub;
     }
@@ -142,7 +189,9 @@ class PivotMigrationMakeCommand extends GeneratorCommand
      */
     protected function getPivotTableName()
     {
-        return implode('_', array_map('str_singular', $this->getSortedTableNames()));
+        return ($this->option('tableName'))
+            ? $this->option('tableName')
+            : implode('_', array_map('str_singular', $this->getSortedTableNames()));
     }
 
     /**
@@ -171,7 +220,26 @@ class PivotMigrationMakeCommand extends GeneratorCommand
     {
         return [
             ['tableOne', InputArgument::REQUIRED, 'The name of the first table.'],
-            ['tableTwo', InputArgument::REQUIRED, 'The name of the second table.']
+            ['tableTwo', InputArgument::REQUIRED, 'The name of the second table.'],
         ];
     }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['action', null, InputOption::VALUE_OPTIONAL, 'Optional action name.', false],
+            ['columnOne', null, InputOption::VALUE_OPTIONAL, 'Optional name for the first field.', false],
+            ['columnTwo', null, InputOption::VALUE_OPTIONAL, 'Optional name for the second field.', false],
+            ['path', null, InputOption::VALUE_OPTIONAL, 'Optional path for a migration.', false],
+            ['filename', null, InputOption::VALUE_OPTIONAL, 'Optional filename for a migration.', false],
+            ['tableName', null, InputOption::VALUE_OPTIONAL, 'Optional tablename for a migration.', false],
+            ['className', null, InputOption::VALUE_OPTIONAL, 'Optional classname for a migration.', false],
+            ['useForeignKeys', null, InputOption::VALUE_OPTIONAL, 'Optional flag to create foreign keys automatically with the pivot table.', true],
+        ];
+}
 }

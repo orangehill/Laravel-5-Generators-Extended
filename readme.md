@@ -253,6 +253,18 @@ Neato.
 
 So you need a migration to setup a pivot table in your database? Easy. We can scaffold the whole class with a single command.
 
+Available arguments and options:
+- `tableOne` - first table name
+- `tableTwo` - second table name
+- `--action` - action (create,drop), default: create
+- `--columnOne` - field name for the first pivot table column (related to the first table)
+- `--columnTwo` - field name for the second pivot table column (related to the second table)
+- `--path` - path for the migration file
+- `--filename` - name of the migration file
+- `--tableName` - name of the pivot table
+- `--className` - name of the migration class
+- `--useForeignKeys` - create foreign keys on the pivot table (default: true)
+
 ```
 php artisan make:migration:pivot tags posts
 ```
