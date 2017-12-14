@@ -2,8 +2,8 @@
 
 namespace Laracasts\Generators\Commands;
 
-use Illuminate\Console\AppNamespaceDetectorTrait;
 use Illuminate\Console\Command;
+use Illuminate\Container\Container;
 use Illuminate\Filesystem\Filesystem;
 use Laracasts\Generators\Migrations\NameParser;
 use Laracasts\Generators\Migrations\SchemaParser;
@@ -13,8 +13,6 @@ use Symfony\Component\Console\Input\InputArgument;
 
 class MigrationMakeCommand extends Command
 {
-    use AppNamespaceDetectorTrait;
-
     /**
      * The console command name.
      *
@@ -63,6 +61,17 @@ class MigrationMakeCommand extends Command
     }
 
     /**
+     * Alias for the fire method.
+     *
+     * In Laravel 5.5 the fire() method has been renamed to handle().
+     * This alias provides support for both Laravel 5.4 and 5.5.
+     */
+    public function handle()
+    {
+        $this->fire();
+    }
+
+    /**
      * Execute the console command.
      *
      * @return mixed
@@ -73,6 +82,16 @@ class MigrationMakeCommand extends Command
 
         $this->makeMigration();
         $this->makeModel();
+    }
+
+    /**
+     * Get the application namespace.
+     *
+     * @return string
+     */
+    protected function getAppNamespace()
+    {
+        return Container::getInstance()->getNamespace();
     }
 
     /**
